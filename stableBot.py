@@ -1,5 +1,3 @@
-import random
-
 class Board:
     def __init__(self, board: "list[list[int]] | None" = None, size: int = 8) -> None:
         if board is None:
@@ -45,20 +43,18 @@ class Board:
 
         return score
 
-    # TODO: readd penalty for things adjecect to edge
     def get_basic_rate_for_move(self, i: int, j: int) -> float:
         # TODO improve evaluation
-        # should give higher favor for corners; better than just edge
-        #if (i == self.board_size - 1 or i == 0) and (j == self.board_size - 1 or j == 0):
-        if (i == self.board_size - 1 and j == self.board_size - 1) or (i == 0 and j == 0) or (j == self.board_size - 1 and i == 0) or (j == 0 and i == self.board_size - 1):
-            return 1000
         if i == self.board_size - 1 or i == 0 or j == self.board_size - 1 or j == 0:
-            return 5
+            return 2
+        if i == self.board_size - 2 or i == 1 or j == self.board_size - 2 or j == 1:
+            return -2
         return 0
 
     def get_rating(self, me: int, depth: int) -> float:
         if depth == 0:
             # base evaluation
+            # TODO: improve
             return self.get_score(me)
 
         enemy = 3 - me
@@ -73,8 +69,6 @@ class Board:
             if current_eval > max_eval:
                 max_eval = current_eval
 
-        if max_eval == float("-inf"):
-            return float("-inf") if self.get_score(me) < 0 else float("inf")
         return max_eval
 
     def is_valid(self, me: int, i: int, j: int) -> bool:
@@ -143,7 +137,6 @@ class Board:
 # A function to return your next move.
 # 'board' is a 8x8 int array, with 0 being an empty cell and 1,2 being you and the opponent,
 # determained by the input 'me'.
-# TODO: I don't like this code
 def get_move(me: int, board: "list[list[int]]"):
     board = Board(board, len(board))
     rate_for_moves = {}
@@ -151,7 +144,8 @@ def get_move(me: int, board: "list[list[int]]"):
     valid_moves = board.get_valid_moves(me)
     if len(valid_moves) == 0:
         return
-    ret = random.choice(valid_moves)
+    index = 177635683940025046467781066894531 % len(valid_moves)
+    ret = valid_moves[index][0], valid_moves[index][1]
 
     for move in valid_moves:
         board1 = board.copy()
