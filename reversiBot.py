@@ -55,28 +55,48 @@ class Board:
         # should give higher favor for corners; better than just edge
         return places_score[i][j]
 
-    def get_rating(self, me: int, depth: int) -> float:
+    # if the rating returned by this is equal or exceeds max_rating_for_use then it is not used and same for min_rating_for_use
+    def get_rating(self, me: int, depth: int, min_rating_for_use: float=float("-inf"), max_rating_for_use: float=float("inf")) -> float:
         if depth == 0:
             # base evaluation
-            return self.get_score(me)
+            return 0
 
+        valid_moves = self.get_valid_moves(me)
         enemy = 3 - me
 
-        max_eval = float("-inf")
+        if len(valid_moves) == 0:
+            if len(self.get_valid_moves(enemy)) == 0:
+                return float("inf") if self.get_score(me) > 0 else float("-inf") # the game is over
+            
+            return -self.get_rating(enemy, depth, -max_rating_for_use, -min_rating_for_use) # skip me's turn
 
-        for i, j in self.get_valid_moves(me):
+        max_eval = min_rating_for_use
+
+        for i, j in valid_moves:
             new_board = self.copy()
             changes = new_board.do_move(me, i, j)
             current_eval = len(changes)
             for changed_i, changed_j in changes:
                 current_eval += new_board.get_basic_rate_for_move(changed_i, changed_j)
-            current_eval -= 0.75 * new_board.get_rating(enemy, depth - 1)
+            # max_rating_for_use calculation
+            # this equation must be true for this move to be used:
+            # current_eval - 3/4 * get_rating > max_eval
+            # get_rating < (current_eval - max_eval) * 4/3
+            # so the new max_rating_for_use is (current_eval - max_eval) * 4/3
+
+            # min_rating_for_use calculation
+            # this equation must be true for this move to be used:
+            # max_rating_for_use > max_eval >= current_eval - 3/4 * get_rating
+            # get_rating > (current_eval - max_rating_for_use) * 4/3
+            # so the new min_rating_for_use is (current_eval - max_rating_for_use) * 4/3
+            current_eval -= 0.75 * new_board.get_rating(enemy, depth - 1, (current_eval - max_rating_for_use) * 4/3, (current_eval - max_eval) * 4/3)
 
             if current_eval > max_eval:
                 max_eval = current_eval
+            
+            if max_rating_for_use <= max_eval:
+                return max_eval # if this is reached this move will not be played
 
-        if max_eval == float("-inf"):
-            return float("-inf") if self.get_score(me) < 0 else float("inf")
         return max_eval
 
     def is_valid(self, me: int, i: int, j: int) -> bool:
@@ -115,8 +135,8 @@ class Board:
 
     def do_move(self, me: int, i: int, j: int) -> "list[tuple[int, int]]":
         enemy = 3 - me
-        changes = [[i, j]]
         self.lst[i][j] = me
+        changes = [(i, j)]
         for di in range(-1, 2):
             for dj in range(-1, 2):
                 line = []
@@ -160,7 +180,7 @@ def get_move(me: int, board: "list[list[int]]") -> "tuple[int, int]":
     for move in valid_moves:
         board1 = board.copy()
         board1.do_move(me, move[0], move[1])
-        rating = -board1.get_rating(3 - me, 3)
+        rating = -board1.get_rating(3 - me, 3, max_rating_for_use=-max_rating)
 
         if rating > max_rating:
             max_rating = rating
