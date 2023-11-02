@@ -1,26 +1,18 @@
-import random
-
 places_score = [
-    [8, -2, 4, 4, 4, 4, -2, 8],
+    [ 8, -2,  4,  4,  4,  4, -2,  8],
     [-2, -6, -4, -4, -4, -4, -6, -2],
-    [4, -4, 2, 2, 2, 2, -4, 4],
-    [4, -4, 2, 0, 0, 2, -4, 4],
-    [4, -4, 2, 0, 0, 2, -4, 4],
-    [4, -4, 2, 2, 2, 2, -4, 4],
+    [ 4, -4,  2,  2,  2,  2, -4,  4],
+    [ 4, -4,  2,  0,  0,  2, -4,  4],
+    [ 4, -4,  2,  0,  0,  2, -4,  4],
+    [ 4, -4,  2,  2,  2,  2, -4,  4],
     [-2, -6, -4, -4, -4, -4, -6, -2],
-    [8, -2, 4, 4, 4, 4, -2, 8]
+    [ 8, -2,  4,  4,  4,  4, -2,  8]                                                                                                  
 ]
 
 
 class Board:
-    def __init__(self, board: "list[list[int]] | None" = None) -> None:
-        if board is None:
-            self.lst = [[0] * 8 for _ in range(3)] + [[0, 0, 0, 2, 1, 0, 0, 0]] + [[0, 0, 0, 1, 2, 0, 0, 0]] + [[0] * 8
-                                                                                                                for _ in
-                                                                                                                range(
-                                                                                                                    3)]
-        else:
-            self.lst = board
+    def __init__(self, board: "list[list[int]]") -> None:
+        self.lst = board
 
     def __getitem__(self, item) -> "list[int]":
         return self.lst[item]
@@ -163,7 +155,7 @@ def get_move(me: int, board: "list[list[int]]"):
     if len(valid_moves) == 0:
         return
 
-    ret = random.choice(valid_moves)
+    ret = valid_moves[0]
 
     for move in valid_moves:
         board1 = board.copy()
