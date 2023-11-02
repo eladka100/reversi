@@ -78,10 +78,11 @@ class Board:
         enemy = 3 - me
 
         max_eval = float("-inf")
-
-        for i, j in self.get_valid_moves(me):
+        
+        valid_moves, changes = self.get_valid_moves(me)
+        for i, j in valid_moves:
             new_board = self.copy()
-            current_eval = new_board.do_move(me, i, j)
+            current_eval = new_board.optimized_do_move(me, i, j, changes[(i,j)])
             current_eval += new_board.get_basic_rate_for_move(i, j) - new_board.get_rating(enemy, depth - 1)  # TODO: improve
 
             if current_eval > max_eval:
@@ -90,6 +91,23 @@ class Board:
         if max_eval == float("-inf"):
             return float("-inf") if self.get_score(me) < 0 else float("inf")
         return max_eval
+    
+    def line_length(self, i, j, di, dj):
+        me = self[i][j]
+        enemy = 3 - me
+        current_j = j + dj
+        current_i = i + di
+        length = 0
+
+        while self.in_board(current_i, current_j) and self[current_i][current_j] == enemy:
+            current_j += dj
+            current_i += di
+            length += 1
+
+        if not self.in_board(current_i, current_j) or self[current_i][current_j] != 0:
+            length = 0
+
+        return length
 
     def is_valid(self, me: int, i: int, j: int) -> bool:
         if self[i][j] != 0:
@@ -115,16 +133,38 @@ class Board:
 
         return False
 
-    def get_valid_moves(self, me: int) -> "list[tuple[int, int]]":
-        moves = []
-
+    def get_valid_moves(self, me: int) -> "tuple[list[tuple[int, int]], dict[tuple[int, int], list[int]]]":
+        valid_tiles = []
+        tiles_to_lines = {}
         for i in range(self.board_size):
             for j in range(self.board_size):
-                if self.is_valid(me, i, j):
-                    moves.append((i, j))
+                if self[i][j] != me:
+                    continue
+                for k in range(8):
+                    di, dj = compute_direction(k)
+                    l = self.line_length(i, j, di, dj)
+                    if l>0:
+                        m, n = i + (l+1)*di, j + (l+1)*dj
+                        if not (m,n) in tiles_to_lines:
+                            valid_tiles.append((m, n))
+                            tiles_to_lines[(m, n)] = [0 for _ in range(8)]
+                        tiles_to_lines[(m, n)][7-k] = l
 
-        return moves
+        return valid_tiles, tiles_to_lines
 
+    def optimized_do_move(self, me: int, i: int, j: int, lines: "list[int]") -> int:
+        score = 0
+        self.lst[i][j] = me
+        for k in range(8):
+            di, dj = compute_direction(k)
+            current_i, current_j = i + di, j + dj
+            for _ in range(lines[k]):
+                self[current_i][current_j] = me
+                current_i += di
+                current_j += dj
+                score += 1
+        return score
+    
     def do_move(self, me: int, i: int, j: int) -> int:
         enemy = 3 - me
         score = 0
@@ -153,7 +193,10 @@ class Board:
                     score += 1
         return score
 
-
+def compute_direction(k) -> "tuple[int, int]":
+        if k<4:
+            return k % 3 - 1, k // 3 - 1
+        return (k+1) % 3 - 1, (k+1) // 3 - 1
 # A function to return your next move.
 # 'board' is a 8x8 int array, with 0 being an empty cell and 1,2 being you and the opponent,
 # determained by the input 'me'.
@@ -162,14 +205,14 @@ def get_move(me: int, board: "list[list[int]]"):
     board = Board(board, len(board))
     rate_for_moves = {}
     max = float("-inf")
-    valid_moves = board.get_valid_moves(me)
+    valid_moves, changes = board.get_valid_moves(me)
     if len(valid_moves) == 0:
         return
     ret = random.choice(valid_moves)
 
     for move in valid_moves:
         board1 = board.copy()
-        board1.do_move(me, move[0], move[1])
+        board1.optimized_do_move(me, move[0], move[1], changes[move])
         rate = board1.get_rating(me, 3)
         rate_for_moves[move] = rate
 
