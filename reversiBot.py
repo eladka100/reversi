@@ -1,55 +1,55 @@
 import random
 
+places_score = [
+    [8, -2, 4, 4, 4, 4, -2, 8],
+    [-2, -6, -4, -4, -4, -4, -6, -2],
+    [4, -4, 2, 2, 2, 2, -4, 4],
+    [4, -4, 2, 0, 0, 2, -4, 4],
+    [4, -4, 2, 0, 0, 2, -4, 4],
+    [4, -4, 2, 2, 2, 2, -4, 4],
+    [-2, -6, -4, -4, -4, -4, -6, -2],
+    [8, -2, 4, 4, 4, 4, -2, 8]
+]
+
+
 class Board:
-    def __init__(self, board: "list[list[int]] | None" = None, size: int = 8) -> None:
+    def __init__(self, board: "list[list[int]] | None" = None) -> None:
         if board is None:
-            self.lst = [[0 for x in range(8)] for y in range(3)] + [[0, 0, 0, 2, 1, 0, 0, 0]] + [[0, 0, 0, 1, 2, 0, 0, 0]] + [[0 for x in range(8)] for y in range(3)]
+            self.lst = [[0] * 8 for _ in range(3)] + [[0, 0, 0, 2, 1, 0, 0, 0]] + [[0, 0, 0, 1, 2, 0, 0, 0]] + [[0] * 8
+                                                                                                                for _ in
+                                                                                                                range(
+                                                                                                                    3)]
         else:
             self.lst = board
-        self.board_size = size
-        # self.dir = {(0, 0): 10, (0, 1): -1, (1, 0): -1, (1, 1): -8, (size-1, size-1): 10, (size-1, size-2): -1, (size-2, size-1): -1, (size-2, size-2): -8, (0, size-1): 10, (0, size-2): -1, (1, size-1): -1, (1, size-2): -8, (size-1, 0): 10, (size-1, 1): -1, (size-2, 0): -1, (size-2, 1): -8,}
-        # for i in range(size):
-        #     for j in range(size):
-        #         if((i, j) not in self.dir.keys()):
-        #             if i == self.board_size - 1 or i == 0 or j == self.board_size - 1 or j == 0:
-        #                 self.dir[(i, j)] = 6
-        #             if i == self.board_size - 2 or i == 1 or j == self.board_size - 2 or j == 1:
-        #                 self.dir[(i, j)] = -5
-        #             if i == self.board_size - 3 or i == 2 or j == self.board_size - 3 or j == 2:
-        #                 self.dir[(i, j)] = 2
-        #             self.dir[(i, j)] = 0
-        # is this ok?
-        
-
 
     def __getitem__(self, item) -> "list[int]":
         return self.lst[item]
 
     def __repr__(self) -> str:
         ret = "--" * 9 + "\n"
-        for i in range(self.board_size):
+        for i in range(8):
             ret += "|" + "".join(map(lambda x: "  " if x == 0 else ("○ " if x == 1 else "● "), self[i])) + "|\n"
         ret += "--" * 9
         return ret
 
     def __str__(self) -> str:
         ret = "--" * 9 + "\n"
-        for i in range(self.board_size):
+        for i in range(8):
             ret += "|" + "".join(map(lambda x: "  " if x == 0 else ("○ " if x == 1 else "● "), self[i])) + "|\n"
         ret += "--" * 9
         return ret
 
     def copy(self):
-        return Board(list(map(list.copy, self.lst)), self.board_size)
+        return Board(list(map(list.copy, self.lst)))
 
     def in_board(self, i, j) -> bool:
-        return self.board_size > i >= 0 and self.board_size > j >= 0
+        return 8 > i >= 0 and 8 > j >= 0
 
     def get_score(self, me: int) -> int:
         score = 0
 
-        for i in range(self.board_size):
-            for j in range(self.board_size):
+        for i in range(8):
+            for j in range(8):
                 value = self[i][j]
                 if value != 0:
                     if value == me:
@@ -59,16 +59,9 @@ class Board:
 
         return score
 
-    # TODO: readd penalty for things adjecect to edge
     def get_basic_rate_for_move(self, i: int, j: int) -> float:
-        # TODO improve evaluation
         # should give higher favor for corners; better than just edge
-        #if (i == self.board_size - 1 or i == 0) and (j == self.board_size - 1 or j == 0):
-        if (i == self.board_size - 1 and j == self.board_size - 1) or (i == 0 and j == 0) or (j == self.board_size - 1 and i == 0) or (j == 0 and i == self.board_size - 1):
-            return 1000
-        if i == self.board_size - 1 or i == 0 or j == self.board_size - 1 or j == 0:
-            return 5
-        return 0
+        return places_score[i][j]
 
     def get_rating(self, me: int, depth: int) -> float:
         if depth == 0:
@@ -81,8 +74,11 @@ class Board:
 
         for i, j in self.get_valid_moves(me):
             new_board = self.copy()
-            current_eval = new_board.do_move(me, i, j)
-            current_eval += new_board.get_basic_rate_for_move(i, j) - new_board.get_rating(enemy, depth - 1)  # TODO: improve
+            changes = new_board.do_move(me, i, j)
+            current_eval = len(changes)
+            for changed_i, changed_j in changes:
+                current_eval += new_board.get_basic_rate_for_move(changed_i, changed_j)
+            current_eval -= 0.75 * new_board.get_rating(enemy, depth - 1)
 
             if current_eval > max_eval:
                 max_eval = current_eval
@@ -115,19 +111,19 @@ class Board:
 
         return False
 
-    def get_valid_moves(self, me: int) -> "list[tuple[int, int]]":
+    def get_valid_moves(self, me: int) -> list[tuple[int, int]]:
         moves = []
 
-        for i in range(self.board_size):
-            for j in range(self.board_size):
+        for i in range(8):
+            for j in range(8):
                 if self.is_valid(me, i, j):
                     moves.append((i, j))
 
         return moves
 
-    def do_move(self, me: int, i: int, j: int) -> int:
+    def do_move(self, me: int, i: int, j: int) -> list[tuple[int, int]]:
         enemy = 3 - me
-        score = 0
+        changes = []
         self.lst[i][j] = me
         for di in range(-1, 2):
             for dj in range(-1, 2):
@@ -150,33 +146,32 @@ class Board:
 
                 for tile in line:
                     self[tile[0]][tile[1]] = me
-                    score += 1
-        return score
+
+                changes += line
+        return changes
 
 
 # A function to return your next move.
 # 'board' is a 8x8 int array, with 0 being an empty cell and 1,2 being you and the opponent,
 # determained by the input 'me'.
-# TODO: I don't like this code
 def get_move(me: int, board: "list[list[int]]"):
-    board = Board(board, len(board))
-    rate_for_moves = {}
-    max = float("-inf")
+    board = Board(board)
+    max_rating = float("-inf")
     valid_moves = board.get_valid_moves(me)
+
+    # if there is no valid move, the bot will never be called in the first place. For safety, we return an invalid result.
     if len(valid_moves) == 0:
         return
+
     ret = random.choice(valid_moves)
 
     for move in valid_moves:
         board1 = board.copy()
         board1.do_move(me, move[0], move[1])
-        rate = board1.get_rating(me, 3)
-        rate_for_moves[move] = rate
+        rating = -board1.get_rating(3 - me, 3)
 
-    for key in rate_for_moves.keys():
-        if rate_for_moves[key] > max:
-            max = rate_for_moves[key]
-            ret = key
+        if rating > max_rating:
+            max_rating = rating
+            ret = move
 
-    # if there is no valid move, the bot will never be called in the first place. For safety, we return an invalid result.
     return ret
