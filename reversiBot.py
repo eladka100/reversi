@@ -121,7 +121,7 @@ class Board:
 
         return False
 
-    def get_valid_moves(self, me: int) -> "list[tuple[int, int]]":
+    def get_valid_moves(self, me: int) -> "tuple[list[tuple[int, int]], dict[tuple[int, int], list[int]]]":
         valid_tiles = []
         tiles_to_lines = {}
         for i in range(self.board_size):
@@ -139,9 +139,8 @@ class Board:
                         tiles_to_lines[(m, n)][7-k] = l
 
         return valid_tiles, tiles_to_lines
-
     def optimized_do_move(self, me: int, i: int, j: int, lines: "list[int]") -> "list[tuple[int, int]]":
-        changes = []
+        changes = [(i, j)]
         self.lst[i][j] = me
         for k in range(8):
             di, dj = compute_direction(k)
@@ -152,10 +151,10 @@ class Board:
                 current_j += dj
                 changes.append((current_i, current_j))
         return changes
-    
+
     def do_move(self, me: int, i: int, j: int) -> "list[tuple[int, int]]":
         enemy = 3 - me
-        changes = []
+        changes = [(i, j)]
         self.lst[i][j] = me
         for di in range(-1, 2):
             for dj in range(-1, 2):
@@ -178,7 +177,6 @@ class Board:
 
                 for tile in line:
                     self[tile[0]][tile[1]] = me
-
                 changes += line
         return changes
 
@@ -192,7 +190,7 @@ def compute_direction(k) -> "tuple[int, int]":
 def get_move(me: int, board: "list[list[int]]"):
     board = Board(board)
     max_rating = float("-inf")
-    valid_moves, lines = board.get_valid_moves(me)
+    valid_moves = board.get_valid_moves(me)
 
     # if there is no valid move, the bot will never be called in the first place. For safety, we return an invalid result.
     if len(valid_moves) == 0:
@@ -202,7 +200,7 @@ def get_move(me: int, board: "list[list[int]]"):
 
     for move in valid_moves:
         board1 = board.copy()
-        board1.optimized_do_move(me, move[0], move[1], lines[move])
+        board1.do_move(me, move[0], move[1])
         rating = -board1.get_rating(3 - me, 3)
 
         if rating > max_rating:
