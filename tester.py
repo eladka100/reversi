@@ -55,7 +55,7 @@ starting_boards = [
     [0, 0, 0, 0, 0, 0, 0, 0],
 ]
 ]
-
+#FIXME: doesn't works with the new optimized systems
 turns = 0
 for start in starting_boards:
     board = reversiBot.Board(start)
