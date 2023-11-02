@@ -123,7 +123,7 @@ class Board:
 
         return False
 
-    def get_valid_moves(self, me: int) -> list[tuple[int, int]]:
+    def get_valid_moves(self, me: int) -> "list[tuple[int, int]]":
         moves = []
 
         for i in range(8):
@@ -133,7 +133,7 @@ class Board:
 
         return moves
 
-    def do_move(self, me: int, i: int, j: int) -> list[tuple[int, int]]:
+    def do_move(self, me: int, i: int, j: int) -> "list[tuple[int, int]]":
         enemy = 3 - me
         self.lst[i][j] = me
         changes = [(i, j)]
@@ -166,7 +166,7 @@ class Board:
 # A function to return your next move.
 # 'board' is a 8x8 int array, with 0 being an empty cell and 1,2 being you and the opponent,
 # determained by the input 'me'.
-def get_move(me: int, board: "list[list[int]]"):
+def get_move(me: int, board: "list[list[int]]") -> "tuple[int, int]":
     board = Board(board)
     max_rating = float("-inf")
     valid_moves = board.get_valid_moves(me)

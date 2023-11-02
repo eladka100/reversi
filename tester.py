@@ -1,5 +1,4 @@
 import reversiBot, basicBot, time, stableBot
-
 bot1 = reversiBot.get_move
 bot1_color = 1
 bot1_total_time = 0
@@ -15,7 +14,7 @@ bot2_total_moves = 0
 bot2_wins = 0
 
 starting_boards = [
-[
+[   
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
@@ -35,8 +34,6 @@ starting_boards = [
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
 ],
-
-
 [
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
@@ -71,7 +68,9 @@ for start in starting_boards:
             turns += 1
             bot1_total_time += t2 - t1
             bot1_max_time = max(bot1_max_time, t2 - t1)
-            bot1_total_moves += 1
+            bot1_total_moves += 1  
+        else:
+            break    
         print(board)
         if len(board.get_valid_moves(bot2_color)) != 0:
             t1 = time.perf_counter()
@@ -80,7 +79,9 @@ for start in starting_boards:
             turns += 1
             bot2_total_time += t2 - t1
             bot2_max_time = max(bot2_max_time, t2 - t1)
-            bot2_total_moves += 1
+            bot2_total_moves += 1 
+        else:
+            break      
         print(board)
 
     if board.get_score(bot1_color) > 0:
@@ -104,6 +105,8 @@ for start in starting_boards:
             turns += 1
             bot2_total_time += t2 - t1
             bot2_total_moves += 1
+        else:
+            break  
         print(board)
         if len(board.get_valid_moves(bot1_color)) != 0:
             t1 = time.perf_counter()
@@ -112,6 +115,8 @@ for start in starting_boards:
             turns += 1
             bot1_total_time += t2 - t1
             bot1_total_moves += 1
+        else:
+            break
         print(board)
         
     if board.get_score(bot1_color) > 0:
