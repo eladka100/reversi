@@ -64,10 +64,10 @@ class Board:
 
         max_eval = float("-inf")
         
-        valid_moves, changes = self.get_valid_moves(me)
+        valid_moves, lines = self.get_valid_moves(me)
         for i, j in valid_moves:
             new_board = self.copy()
-            changes = new_board.optimized_do_move(me, i, j, changes[(i,j)])
+            changes = new_board.optimized_do_move(me, i, j, lines[(i,j)])
             current_eval = len(changes)
             for changed_i, changed_j in changes:
                 current_eval += new_board.get_basic_rate_for_move(changed_i, changed_j)
@@ -124,8 +124,8 @@ class Board:
     def get_valid_moves(self, me: int) -> "tuple[list[tuple[int, int]], dict[tuple[int, int], list[int]]]":
         valid_tiles = []
         tiles_to_lines = {}
-        for i in range(self.board_size):
-            for j in range(self.board_size):
+        for i in range(8):
+            for j in range(8):
                 if self[i][j] != me:
                     continue
                 for k in range(8):
@@ -190,7 +190,7 @@ def compute_direction(k) -> "tuple[int, int]":
 def get_move(me: int, board: "list[list[int]]"):
     board = Board(board)
     max_rating = float("-inf")
-    valid_moves = board.get_valid_moves(me)
+    valid_moves, lines = board.get_valid_moves(me)
 
     # if there is no valid move, the bot will never be called in the first place. For safety, we return an invalid result.
     if len(valid_moves) == 0:
@@ -200,7 +200,7 @@ def get_move(me: int, board: "list[list[int]]"):
 
     for move in valid_moves:
         board1 = board.copy()
-        board1.do_move(me, move[0], move[1])
+        board1.optimized_do_move(me, move[0], move[1], lines[move])
         rating = -board1.get_rating(3 - me, 3)
 
         if rating > max_rating:
