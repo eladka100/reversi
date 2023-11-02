@@ -115,7 +115,7 @@ class Board:
 
     def do_move(self, me: int, i: int, j: int) -> "list[tuple[int, int]]":
         enemy = 3 - me
-        changes = []
+        changes = [[i, j]]
         self.lst[i][j] = me
         for di in range(-1, 2):
             for dj in range(-1, 2):
