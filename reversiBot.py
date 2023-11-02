@@ -1,4 +1,3 @@
-import numpy as np
 places_score = [
     [ 8, -2,  4,  4,  4,  4, -2,  8],
     [-2, -6, -4, -4, -4, -4, -6, -2],
@@ -12,10 +11,10 @@ places_score = [
 
 
 class Board:
-    def __init__(self, board: "np.array[np.array[int]]") -> None:
+    def __init__(self, board: "list[list[int]]") -> None:
         self.lst = board
 
-    def __getitem__(self, item) -> "np.array[int]":
+    def __getitem__(self, item) -> "list[int]":
         return self.lst[item]
 
     def __repr__(self) -> str:
@@ -32,8 +31,8 @@ class Board:
         ret += "--" * 9
         return ret
 
-    def copy(self) -> "Board":
-        return Board(np.array(map(np.array.copy, self.lst)))
+    def copy(self):
+        return Board(list(map(list.copy, self.lst)))
 
     def in_board(self, i, j) -> bool:
         return 8 > i >= 0 and 8 > j >= 0
@@ -104,7 +103,7 @@ class Board:
 
         return False
 
-    def get_valid_moves(self, me: int) -> "np.array[tuple[int, int]]":
+    def get_valid_moves(self, me: int) -> list[tuple[int, int]]:
         moves = []
 
         for i in range(8):
@@ -114,10 +113,10 @@ class Board:
 
         return moves
 
-    def do_move(self, me: int, i: int, j: int) -> "np.array[tuple[int, int]]":
+    def do_move(self, me: int, i: int, j: int) -> list[tuple[int, int]]:
         enemy = 3 - me
-        changes = [[i, j]]
-        self[i][j] = me
+        changes = []
+        self.lst[i][j] = me
         for di in range(-1, 2):
             for dj in range(-1, 2):
                 line = []
@@ -147,20 +146,19 @@ class Board:
 # A function to return your next move.
 # 'board' is a 8x8 int array, with 0 being an empty cell and 1,2 being you and the opponent,
 # determained by the input 'me'.
-def get_move(me: int, board: "list[list[int]]") -> "tuple[int, int]":
-    board = np.array(map(np.array, board))
-    board_board = Board(board)
+def get_move(me: int, board: "list[list[int]]"):
+    board = Board(board)
     max_rating = float("-inf")
-    valid_moves = board_board.get_valid_moves(me)
+    valid_moves = board.get_valid_moves(me)
 
     # if there is no valid move, the bot will never be called in the first place. For safety, we return an invalid result.
     if len(valid_moves) == 0:
-        return "NO VAILD MOVES!!!!!!"
+        return
 
     ret = valid_moves[0]
 
     for move in valid_moves:
-        board1 = board_board.copy()
+        board1 = board.copy()
         board1.do_move(me, move[0], move[1])
         rating = -board1.get_rating(3 - me, 3)
 
