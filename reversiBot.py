@@ -68,7 +68,7 @@ class Board:
             if len(self.get_valid_moves(enemy)) == 0:
                 return float("inf") if self.get_score(me) > 0 else float("-inf") # the game is over
             
-            return -self.get_rating(enemy, depth, -max_rating_for_use, -min_rating_for_use) # skip me's turn
+            return -0.75 * self.get_rating(enemy, depth, -max_rating_for_use, -min_rating_for_use) # skip me's turn
 
         max_eval = min_rating_for_use
 
@@ -179,8 +179,11 @@ def get_move(me: int, board: "list[list[int]]") -> "tuple[int, int]":
 
     for move in valid_moves:
         board1 = board.copy()
-        board1.do_move(me, move[0], move[1])
-        rating = -board1.get_rating(3 - me, 3, max_rating_for_use=-max_rating)
+        changes = board1.do_move(me, move[0], move[1])
+        rating = len(changes)
+        for changed_i, changed_j in changes:
+            rating += board1.get_basic_rate_for_move(changed_i, changed_j)
+        rating += -0.75 * board1.get_rating(3 - me, 3, max_rating_for_use=-max_rating)
 
         if rating > max_rating:
             max_rating = rating
