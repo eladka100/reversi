@@ -116,29 +116,29 @@ class Board:
 
         return length
 
-    def is_valid(self, me: int, i: int, j: int) -> bool:
-        if self[i][j] != 0:
-            return False
-        # check every direction
-        enemy = 3 - me
-        for di in range(-1, 2):
-            for dj in range(-1, 2):
-                current_j = j + dj
-                current_i = i + di
+    # def is_valid(self, me: int, i: int, j: int) -> bool:
+    #     if self[i][j] != 0:
+    #         return False
+    #     # check every direction
+    #     enemy = 3 - me
+    #     for di in range(-1, 2):
+    #         for dj in range(-1, 2):
+    #             current_j = j + dj
+    #             current_i = i + di
 
-                if not self.in_board(current_i, current_j) or self[current_i][current_j] != enemy:
-                    continue
-                if not (di == 0 == dj):
-                    while self.in_board(current_i, current_j) and self[current_i][current_j] == enemy:
-                        current_j += dj
-                        current_i += di
+    #             if not self.in_board(current_i, current_j) or self[current_i][current_j] != enemy:
+    #                 continue
+    #             if not (di == 0 == dj):
+    #                 while self.in_board(current_i, current_j) and self[current_i][current_j] == enemy:
+    #                     current_j += dj
+    #                     current_i += di
 
-                if not self.in_board(current_i, current_j) or self[current_i][current_j] != me:
-                    continue
+    #             if not self.in_board(current_i, current_j) or self[current_i][current_j] != me:
+    #                 continue
 
-                return True
+    #             return True
 
-        return False
+    #     return False
 
     def get_valid_moves(self, me: int) -> "tuple[list[tuple[int, int]], dict[tuple[int, int], list[int]]]":
         valid_tiles = []
@@ -158,6 +158,7 @@ class Board:
                         tiles_to_lines[(m, n)][7-k] = l
 
         return valid_tiles, tiles_to_lines
+    
     def optimized_do_move(self, me: int, i: int, j: int, lines: "list[int]") -> "list[tuple[int, int]]":
         changes = [(i, j)]
         self.lst[i][j] = me
@@ -171,38 +172,40 @@ class Board:
                 changes.append((current_i, current_j))
         return changes
 
-    def do_move(self, me: int, i: int, j: int) -> "list[tuple[int, int]]":
-        enemy = 3 - me
-        self.lst[i][j] = me
-        changes = [(i, j)]
-        for di in range(-1, 2):
-            for dj in range(-1, 2):
-                line = []
-                current_j = j
-                current_i = i
+    # def do_move(self, me: int, i: int, j: int) -> "list[tuple[int, int]]":
+    #     enemy = 3 - me
+    #     self.lst[i][j] = me
+    #     changes = [(i, j)]
+    #     for di in range(-1, 2):
+    #         for dj in range(-1, 2):
+    #             line = []
+    #             current_j = j
+    #             current_i = i
 
-                current_j += dj
-                current_i += di
-                if not self.in_board(current_i, current_j) or self[current_i][current_j] != enemy:
-                    continue
+    #             current_j += dj
+    #             current_i += di
+    #             if not self.in_board(current_i, current_j) or self[current_i][current_j] != enemy:
+    #                 continue
 
-                while self.in_board(current_i, current_j) and self[current_i][current_j] == enemy:
-                    line.append([current_i, current_j])
-                    current_j += dj
-                    current_i += di
+    #             while self.in_board(current_i, current_j) and self[current_i][current_j] == enemy:
+    #                 line.append([current_i, current_j])
+    #                 current_j += dj
+    #                 current_i += di
 
-                if not self.in_board(current_i, current_j) or self[current_i][current_j] != me:
-                    continue
+    #             if not self.in_board(current_i, current_j) or self[current_i][current_j] != me:
+    #                 continue
 
-                for tile in line:
-                    self[tile[0]][tile[1]] = me
-                changes += line
-        return changes
+    #             for tile in line:
+    #                 self[tile[0]][tile[1]] = me
+    #             changes += line
+    #     return changes
+
 
 def compute_direction(k) -> "tuple[int, int]":
         if k<4:
             return k % 3 - 1, k // 3 - 1
         return (k+1) % 3 - 1, (k+1) // 3 - 1
+
 # A function to return your next move.
 # 'board' is a 8x8 int array, with 0 being an empty cell and 1,2 being you and the opponent,
 # determained by the input 'me'.
