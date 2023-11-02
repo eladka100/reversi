@@ -61,7 +61,7 @@ for start in starting_boards:
     board = reversiBot.Board(start)
 
     while any(0 in l for l in board.lst):
-        if len(board.get_valid_moves(bot1_color)) != 0:
+        if len(board.get_valid_moves(bot1_color)[0]) != 0:
             t1 = time.perf_counter()
             board.do_move(bot1_color, *bot1(bot1_color, board.lst))
             t2 = time.perf_counter()
@@ -72,7 +72,7 @@ for start in starting_boards:
         else:
             break    
         print(board)
-        if len(board.get_valid_moves(bot2_color)) != 0:
+        if len(board.get_valid_moves(bot2_color)[0]) != 0:
             t1 = time.perf_counter()
             board.do_move(bot2_color, *bot2(bot2_color, board.lst))
             t2 = time.perf_counter()
@@ -98,7 +98,7 @@ for start in starting_boards:
 
 
     while any(0 in l for l in board.lst):
-        if len(board.get_valid_moves(bot2_color)) != 0:
+        if len(board.get_valid_moves(bot2_color)[0]) != 0:
             t1 = time.perf_counter()
             board.do_move(bot2_color, *bot2(bot2_color, board.lst))
             t2 = time.perf_counter()
@@ -108,7 +108,7 @@ for start in starting_boards:
         else:
             break  
         print(board)
-        if len(board.get_valid_moves(bot1_color)) != 0:
+        if len(board.get_valid_moves(bot1_color)[0]) != 0:
             t1 = time.perf_counter()
             board.do_move(bot1_color, *bot1(bot1_color, board.lst))
             t2 = time.perf_counter()
