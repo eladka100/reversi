@@ -135,8 +135,8 @@ class Board:
 
     def do_move(self, me: int, i: int, j: int) -> list[tuple[int, int]]:
         enemy = 3 - me
-        changes = []
         self.lst[i][j] = me
+        changes = [(i, j)]
         for di in range(-1, 2):
             for dj in range(-1, 2):
                 line = []
@@ -180,7 +180,7 @@ def get_move(me: int, board: "list[list[int]]"):
     for move in valid_moves:
         board1 = board.copy()
         board1.do_move(me, move[0], move[1])
-        rating = -board1.get_rating(3 - me, 3)
+        rating = -board1.get_rating(3 - me, 3, max_rating_for_use=-max_rating)
 
         if rating > max_rating:
             max_rating = rating
