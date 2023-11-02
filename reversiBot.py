@@ -7,6 +7,20 @@ class Board:
         else:
             self.lst = board
         self.board_size = size
+        # self.dir = {(0, 0): 10, (0, 1): -1, (1, 0): -1, (1, 1): -8, (size-1, size-1): 10, (size-1, size-2): -1, (size-2, size-1): -1, (size-2, size-2): -8, (0, size-1): 10, (0, size-2): -1, (1, size-1): -1, (1, size-2): -8, (size-1, 0): 10, (size-1, 1): -1, (size-2, 0): -1, (size-2, 1): -8,}
+        # for i in range(size):
+        #     for j in range(size):
+        #         if((i, j) not in self.dir.keys()):
+        #             if i == self.board_size - 1 or i == 0 or j == self.board_size - 1 or j == 0:
+        #                 self.dir[(i, j)] = 6
+        #             if i == self.board_size - 2 or i == 1 or j == self.board_size - 2 or j == 1:
+        #                 self.dir[(i, j)] = -5
+        #             if i == self.board_size - 3 or i == 2 or j == self.board_size - 3 or j == 2:
+        #                 self.dir[(i, j)] = 2
+        #             self.dir[(i, j)] = 0
+        # is this ok?
+        
+
 
     def __getitem__(self, item) -> "list[int]":
         return self.lst[item]
