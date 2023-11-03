@@ -1,3 +1,4 @@
+import numpy as np
 places_score = [
     [ 8, -2,  4,  4,  4,  4, -2,  8],
     [-2, -6, -4, -4, -4, -4, -6, -2],
@@ -11,10 +12,10 @@ places_score = [
 
 
 class Board:
-    def __init__(self, board: "list[list[int]]") -> None:
+    def __init__(self, board: "np.array[np.array[int]]") -> None:
         self.lst = board
 
-    def __getitem__(self, item) -> "list[int]":
+    def __getitem__(self, item) -> "np.array[int]":
         return self.lst[item]
 
     def __repr__(self) -> str:
@@ -37,8 +38,8 @@ class Board:
     def __eq__(self, other) -> bool:
         return self.lst == other.lst
 
-    def copy(self):
-        return Board(list(map(list.copy, self.lst)))
+    def copy(self) -> "Board":
+        return Board(self.lst.copy())
 
     def in_board(self, i, j) -> bool:
         return 8 > i >= 0 and 8 > j >= 0
@@ -165,7 +166,7 @@ class Board:
 
         return valid_tiles, tiles_to_lines
     
-    def optimized_do_move(self, me: int, i: int, j: int, lines: "list[int]") -> "list[tuple[int, int]]":
+    def optimized_do_move(self, me: int, i: int, j: int, lines: "np.array[int]") -> "np.array[tuple[int, int]]":
         changes = [(i, j)]
         self.lst[i][j] = me
         for k in range(8):
@@ -186,9 +187,10 @@ def compute_direction(k) -> "tuple[int, int]":
 
 # A function to return your next move.
 # 'board' is a 8x8 int array, with 0 being an empty cell and 1,2 being you and the opponent,
-# determined by the input 'me'.
-def get_move(me: int, board: "list[list[int]]"):
-    board = Board(board)
+# determained by the input 'me'.
+def get_move(me: int, array_board: "list[list[int]]"):
+    array_board = np.array(array_board)
+    board = Board(array_board)
     max_rating = float("-inf")
     valid_moves, lines = board.get_valid_moves(me)
 

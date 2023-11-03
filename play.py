@@ -1,8 +1,9 @@
+import numpy
 import reversiBot
 
 bot = reversiBot.get_move
 
-board = reversiBot.Board([
+nplist_board = numpy.array([   
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
@@ -10,8 +11,10 @@ board = reversiBot.Board([
     [0, 0, 0, 2, 1, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0],
 ])
+board = reversiBot.Board(nplist_board)
+
 while any(0 in l for l in board.lst):
     i, j = bot(1, board.lst)
     board.optimized_do_move(1, i, j, board.get_valid_moves(1)[1][(i, j)])
