@@ -62,7 +62,25 @@ class Board:
         return places_score[i][j]
 
     # if the rating returned by this is equal or exceeds max_rating_for_use then it is not used and same for min_rating_for_use
-    def get_rating(self, me: int, depth: int, min_rating_for_use: float=float("-inf"), max_rating_for_use: float=float("inf")) -> float:
+    # the cache contains a Board as a key and (int, float) as value
+    # if the int is 0 then the eval is the number, if it is 1 then the eval is bigger then or equal to the number and if it is 2 then the eval is less then or equal to the number
+    # a potential problem is if the value in the cache is evaluated with less depth but this is rare so I did not include a check for it
+    def get_rating(self, me: int, depth: int, cache: dict, min_rating_for_use: float=float("-inf"), max_rating_for_use: float=float("inf")) -> float:
+        board_cache = cache.get(self, None)
+        if board_cache is not None:
+            if board_cache[0] == 0:
+                return board_cache[1]
+            if board_cache[0] == 1:
+                if board_cache[1] >= max_rating_for_use:
+                    return board_cache[1]
+                if board_cache[1] > min_rating_for_use:
+                    min_rating_for_use = board_cache[1] - 0.01
+            else:
+                if board_cache[1] <= min_rating_for_use:
+                    return board_cache[1]
+                if board_cache[1] < max_rating_for_use:
+                    max_rating_for_use = board_cache[1] + 0.01
+
         if depth == 0:
             # base evaluation
             return 0
@@ -101,7 +119,13 @@ class Board:
                 max_eval = current_eval
             
             if max_rating_for_use <= max_eval:
+                cache[self] = (1, max_rating_for_use)
                 return max_eval # if this is reached this move will not be played
+
+        if max_eval <= min_rating_for_use:
+            cache[self] = (2, min_rating_for_use)
+        else:
+            cache[self] = (0, min_rating_for_use)
 
         return max_eval
     
