@@ -2,10 +2,20 @@ import reversiBot
 
 bot = reversiBot.get_move
 
-board = reversiBot.Board()
-#FIXME: doesn't works with the new optimized systems
+board = reversiBot.Board([
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 2, 0, 0, 0],
+    [0, 0, 0, 2, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0]
+])
 while any(0 in l for l in board.lst):
-    board.do_move(1, *bot(1, board.lst))
+    i, j = bot(1, board.lst)
+    board.optimized_do_move(1, i, j, board.get_valid_moves(1)[1][(i, j)])
     print(board)
-    board.do_move(2, *map(int, input().split(",")))
+    i, j = map(int, input().split(","))
+    board.optimized_do_move(2, i, j, board.get_valid_moves(2)[1][(i, j)])
     print(board)

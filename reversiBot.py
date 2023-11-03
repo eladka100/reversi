@@ -32,7 +32,7 @@ class Board:
         return ret
     
     def __hash__(self) -> int:
-        return hash(tuple(self.lst))
+        return hash(tuple(map(tuple, self.lst)))
     
     def __eq__(self, other) -> bool:
         return self.lst == other.lst
@@ -92,13 +92,13 @@ class Board:
             if len(self.get_valid_moves(enemy)) == 0:
                 return float("inf") if self.get_score(me) > 0 else float("-inf") # the game is over
             
-            return -0.75 * self.get_rating(enemy, depth-1, -max_rating_for_use, -min_rating_for_use) # skip me's turn
+            return -0.75 * self.get_rating(enemy, depth-1, cache, -max_rating_for_use, -min_rating_for_use) # skip me's turn
 
         max_eval = min_rating_for_use
 
         for i, j in valid_moves:
             new_board = self.copy()
-            changes = new_board.optimized_do_move(me, i, j, lines[(i,j)])
+            changes = new_board.optimized_do_move(me, i, j, lines[(i, j)])
             current_eval = len(changes)
             for changed_i, changed_j in changes:
                 current_eval += new_board.get_basic_rate_for_move(changed_i, changed_j)
@@ -113,7 +113,7 @@ class Board:
             # max_rating_for_use > max_eval >= current_eval - 3/4 * get_rating
             # get_rating > (current_eval - max_rating_for_use) * 4/3
             # so the new min_rating_for_use is (current_eval - max_rating_for_use) * 4/3
-            current_eval -= 0.75 * new_board.get_rating(enemy, depth - 1, (current_eval - max_rating_for_use) * 4/3, (current_eval - max_eval) * 4/3)
+            current_eval -= 0.75 * new_board.get_rating(enemy, depth - 1, cache, (current_eval - max_rating_for_use) * 4/3, (current_eval - max_eval) * 4/3)
 
             if current_eval > max_eval:
                 max_eval = current_eval
@@ -204,7 +204,7 @@ def get_move(me: int, board: "list[list[int]]"):
         rating = len(changes)
         for changed_i, changed_j in changes:
             rating += board1.get_basic_rate_for_move(changed_i, changed_j)
-        rating += -0.75 * board1.get_rating(3 - me, 3, max_rating_for_use=-max_rating)
+        rating += -0.75 * board1.get_rating(3 - me, 3, dict(), max_rating_for_use=-max_rating)
 
         if rating > max_rating:
             max_rating = rating
