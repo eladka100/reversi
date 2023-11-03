@@ -31,6 +31,12 @@ class Board:
             ret += "|" + "".join(map(lambda x: "  " if x == 0 else ("○ " if x == 1 else "● "), self[i])) + "|\n"
         ret += "--" * 9
         return ret
+    
+    def __hash__(self) -> int:
+        return hash(tuple(map(tuple, self.lst)))
+    
+    def __eq__(self, other) -> bool:
+        return self.lst == other.lst
 
     def copy(self) -> "Board":
         return Board(self.lst.copy())
@@ -57,7 +63,25 @@ class Board:
         return places_score[i][j]
 
     # if the rating returned by this is equal or exceeds max_rating_for_use then it is not used and same for min_rating_for_use
-    def get_rating(self, me: int, depth: int, min_rating_for_use: float=float("-inf"), max_rating_for_use: float=float("inf")) -> float:
+    # the cache contains a Board as a key and (int, float) as value
+    # if the int is 0 then the eval is the number, if it is 1 then the eval is bigger then or equal to the number and if it is 2 then the eval is less then or equal to the number
+    # a potential problem is if the value in the cache is evaluated with less depth but this is rare so I did not include a check for it
+    def get_rating(self, me: int, depth: int, cache: dict, min_rating_for_use: float=float("-inf"), max_rating_for_use: float=float("inf")) -> float:
+        board_cache = cache.get(self, None)
+        if board_cache is not None:
+            if board_cache[0] == 0:
+                return board_cache[1]
+            if board_cache[0] == 1:
+                if board_cache[1] >= max_rating_for_use:
+                    return board_cache[1]
+                if board_cache[1] > min_rating_for_use:
+                    min_rating_for_use = board_cache[1] - 0.01
+            else:
+                if board_cache[1] <= min_rating_for_use:
+                    return board_cache[1]
+                if board_cache[1] < max_rating_for_use:
+                    max_rating_for_use = board_cache[1] + 0.01
+
         if depth == 0:
             # base evaluation
             return 0
@@ -69,36 +93,42 @@ class Board:
             if len(self.get_valid_moves(enemy)) == 0:
                 return float("inf") if self.get_score(me) > 0 else float("-inf") # the game is over
             
-            return -0.75 * self.get_rating(enemy, depth-1, -max_rating_for_use, -min_rating_for_use) # skip me's turn
+            return -0.75 * self.get_rating(enemy, depth-1, cache, -max_rating_for_use, -min_rating_for_use) # skip me's turn
 
-        max_eval = min_rating_for_use
+        max_rating = min_rating_for_use
 
         for i, j in valid_moves:
             new_board = self.copy()
-            changes = new_board.optimized_do_move(me, i, j, lines[(i,j)])
-            current_eval = len(changes)
+            changes = new_board.optimized_do_move(me, i, j, lines[(i, j)])
+            current_rating = len(changes)
             for changed_i, changed_j in changes:
-                current_eval += new_board.get_basic_rate_for_move(changed_i, changed_j)
+                current_rating += new_board.get_basic_rate_for_move(changed_i, changed_j)
             # max_rating_for_use calculation
             # this equation must be true for this move to be used:
-            # current_eval - 3/4 * get_rating > max_eval
-            # get_rating < (current_eval - max_eval) * 4/3
-            # so the new max_rating_for_use is (current_eval - max_eval) * 4/3
+            # current_rating - 3/4 * get_rating > max_rating
+            # get_rating < (current_rating - max_rating) * 4/3
+            # so the new max_rating_for_use is (current_rating - max_rating) * 4/3
 
             # min_rating_for_use calculation
             # this equation must be true for this move to be used:
-            # max_rating_for_use > max_eval >= current_eval - 3/4 * get_rating
-            # get_rating > (current_eval - max_rating_for_use) * 4/3
-            # so the new min_rating_for_use is (current_eval - max_rating_for_use) * 4/3
-            current_eval -= 0.75 * new_board.get_rating(enemy, depth - 1, (current_eval - max_rating_for_use) * 4/3, (current_eval - max_eval) * 4/3)
+            # max_rating_for_use > max_rating >= current_rating - 3/4 * get_rating
+            # get_rating > (current_rating - max_rating_for_use) * 4/3
+            # so the new min_rating_for_use is (current_rating - max_rating_for_use) * 4/3
+            current_rating -= 0.75 * new_board.get_rating(enemy, depth - 1, cache, (current_rating - max_rating_for_use) * 4/3, (current_rating - max_rating) * 4/3)
 
-            if current_eval > max_eval:
-                max_eval = current_eval
+            if current_rating > max_rating:
+                max_rating = current_rating
             
-            if max_rating_for_use <= max_eval:
-                return max_eval # if this is reached this move will not be played
+            if max_rating_for_use <= max_rating:
+                cache[self] = (1, max_rating_for_use)
+                return max_rating # if this is reached this move will not be played
 
-        return max_eval
+        if max_rating <= min_rating_for_use:
+            cache[self] = (2, min_rating_for_use)
+        else:
+            cache[self] = (0, min_rating_for_use)
+
+        return max_rating
     
     def line_length(self, i, j, di, dj):
         me = self[i][j]
@@ -117,31 +147,7 @@ class Board:
 
         return length
 
-    # def is_valid(self, me: int, i: int, j: int) -> bool:
-    #     if self[i][j] != 0:
-    #         return False
-    #     # check every direction
-    #     enemy = 3 - me
-    #     for di in range(-1, 2):
-    #         for dj in range(-1, 2):
-    #             current_j = j + dj
-    #             current_i = i + di
-
-    #             if not self.in_board(current_i, current_j) or self[current_i][current_j] != enemy:
-    #                 continue
-    #             if not (di == 0 == dj):
-    #                 while self.in_board(current_i, current_j) and self[current_i][current_j] == enemy:
-    #                     current_j += dj
-    #                     current_i += di
-
-    #             if not self.in_board(current_i, current_j) or self[current_i][current_j] != me:
-    #                 continue
-
-    #             return True
-
-    #     return False
-
-    def get_valid_moves(self, me: int) -> "tuple[np.array[tuple[int, int]], dict[tuple[int, int], np.array[int]]]":
+    def get_valid_moves(self, me: int) -> "tuple[list[tuple[int, int]], dict[tuple[int, int], list[int]]]":
         valid_tiles = []
         tiles_to_lines = {}
         for i in range(8):
@@ -168,44 +174,16 @@ class Board:
             current_i, current_j = i + di, j + dj
             for _ in range(lines[k]):
                 self[current_i][current_j] = me
+                changes.append((current_i, current_j))
                 current_i += di
                 current_j += dj
-                changes.append((current_i, current_j))
         return changes
-
-    # def do_move(self, me: int, i: int, j: int) -> "np.array[tuple[int, int]]":
-    #     enemy = 3 - me
-    #     self.lst[i][j] = me
-    #     changes = [(i, j)]
-    #     for di in range(-1, 2):
-    #         for dj in range(-1, 2):
-    #             line = []
-    #             current_j = j
-    #             current_i = i
-
-    #             current_j += dj
-    #             current_i += di
-    #             if not self.in_board(current_i, current_j) or self[current_i][current_j] != enemy:
-    #                 continue
-
-    #             while self.in_board(current_i, current_j) and self[current_i][current_j] == enemy:
-    #                 line.append([current_i, current_j])
-    #                 current_j += dj
-    #                 current_i += di
-
-    #             if not self.in_board(current_i, current_j) or self[current_i][current_j] != me:
-    #                 continue
-
-    #             for tile in line:
-    #                 self[tile[0]][tile[1]] = me
-    #             changes += line
-    #     return changes
 
 
 def compute_direction(k) -> "tuple[int, int]":
-        if k<4:
+        if k < 4:
             return k % 3 - 1, k // 3 - 1
-        return (k+1) % 3 - 1, (k+1) // 3 - 1
+        return (k + 1) % 3 - 1, (k + 1) // 3 - 1
 
 # A function to return your next move.
 # 'board' is a 8x8 int array, with 0 being an empty cell and 1,2 being you and the opponent,
@@ -225,13 +203,19 @@ def get_move(me: int, array_board: "list[list[int]]"):
     for move in valid_moves:
         board1 = board.copy()
         changes = board1.optimized_do_move(me, move[0], move[1], lines[move])
-        rating = len(changes)
+        current_rating = len(changes)
         for changed_i, changed_j in changes:
-            rating += board1.get_basic_rate_for_move(changed_i, changed_j)
-        rating += -0.75 * board1.get_rating(3 - me, 3, max_rating_for_use=-max_rating)
+            current_rating += board1.get_basic_rate_for_move(changed_i, changed_j)
 
-        if rating > max_rating:
-            max_rating = rating
+        # max_rating_for_use calculation
+        # this equation must be true for this move to be used:
+        # current_rating - 3/4 * get_rating > max_rating
+        # get_rating < (current_rating - max_rating) * 4/3
+        # so the new max_rating_for_use is (current_rating - max_rating) * 4/3
+        current_rating -= 0.75 * board1.get_rating(3 - me, 3, dict(), max_rating_for_use=(current_rating - max_rating) * 4/3)
+
+        if current_rating > max_rating:
+            max_rating = current_rating
             ret = move
 
     return ret

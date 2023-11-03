@@ -15,11 +15,10 @@ nplist_board = numpy.array([
 ])
 board = reversiBot.Board(nplist_board)
 
-#FIXME: doesn't works with the new optimized systems nor with numpy arrays
-
-board = reversiBot.Board()
 while any(0 in l for l in board.lst):
-    board.do_move(1, *bot(1, board.lst))
+    i, j = bot(1, board.lst)
+    board.optimized_do_move(1, i, j, board.get_valid_moves(1)[1][(i, j)])
     print(board)
-    board.do_move(2, *map(int, input().split(",")))
+    i, j = map(int, input().split(","))
+    board.optimized_do_move(2, i, j, board.get_valid_moves(2)[1][(i, j)])
     print(board)
