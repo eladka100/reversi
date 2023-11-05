@@ -36,7 +36,7 @@ class Board:
         return hash(tuple(map(tuple, self.lst)))
     
     def __eq__(self, other) -> bool:
-        return self.lst == other.lst
+        return np.array_equal(self.lst, other.lst)
 
     def copy(self) -> "Board":
         return Board(self.lst.copy())
