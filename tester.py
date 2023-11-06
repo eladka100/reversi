@@ -1,4 +1,4 @@
-import reversiBot, basicBot, time, stableBot
+import reversiBot, basicBot, time, stableBot, betterStableBot
 bot1 = reversiBot.get_move
 bot1_color = 1
 bot1_total_time = 0
@@ -13,6 +13,7 @@ bot2_max_time = 0
 bot2_total_moves = 0
 bot2_wins = 0
 
+#FIXME: doesn't works with the new optimized systems nor with numpy arrays
 starting_boards = [
 [   
     [0, 0, 0, 0, 0, 0, 0, 0],
@@ -55,7 +56,6 @@ starting_boards = [
     [0, 0, 0, 0, 0, 0, 0, 0],
 ]
 ]
-#FIXME: doesn't works with the new optimized systems nor with numpy arrays
 turns = 0
 for start in starting_boards:
     board = reversiBot.Board(start)

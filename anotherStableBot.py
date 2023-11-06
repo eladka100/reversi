@@ -1,5 +1,5 @@
 import numpy as np
-places_score = np.array([
+places_score = [
     [ 8, -2,  4,  4,  4,  4, -2,  8],
     [-2, -6, -4, -4, -4, -4, -6, -2],
     [ 4, -4,  2,  2,  2,  2, -4,  4],
@@ -8,7 +8,7 @@ places_score = np.array([
     [ 4, -4,  2,  2,  2,  2, -4,  4],
     [-2, -6, -4, -4, -4, -4, -6, -2],
     [ 8, -2,  4,  4,  4,  4, -2,  8]                                                                                                  
-], dtype=float)
+]
 
 
 class Board:
@@ -189,14 +189,6 @@ def compute_direction(k) -> "tuple[int, int]":
 # 'board' is a 8x8 int array, with 0 being an empty cell and 1,2 being you and the opponent,
 # determained by the input 'me'.
 def get_move(me: int, array_board: "list[list[int]]"):
-    global places_score
-    turns = 0
-    for lst in array_board:
-        for slot in lst:
-            if slot != 0:
-                turns += 1
-    places_score *= 1 - turns / 64
-
     array_board = np.array(array_board)
     board = Board(array_board)
     max_rating = float("-inf")
