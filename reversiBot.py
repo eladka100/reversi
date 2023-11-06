@@ -45,18 +45,10 @@ class Board:
         return 8 > i >= 0 and 8 > j >= 0
 
     def get_score(self, me: int) -> int:
-        score = 0
+        zeros = np.count_nonzero(self.lst)
+        sum = np.sum(self.lst)
+        return 192 - 2 * sum - 3 * zeros
 
-        for i in range(8):
-            for j in range(8):
-                value = self[i][j]
-                if value != 0:
-                    if value == me:
-                        score += 1
-                    else:
-                        score -= 1
-
-        return score
 
     def get_basic_rate_for_move(self, i: int, j: int) -> float:
         # should give higher favor for corners; better than just edge
