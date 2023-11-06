@@ -190,15 +190,11 @@ def compute_direction(k) -> "tuple[int, int]":
 # determained by the input 'me'.
 def get_move(me: int, array_board: "list[list[int]]"):
     global places_score
-    turns = 0
-    for lst in array_board:
-        for slot in lst:
-            if slot != 0:
-                turns += 1
-    places_score *= 1 - turns / 64
 
-    array_board = np.array(array_board)
-    board = Board(array_board)
+    np_array_board = np.array(array_board)
+    if np.count_nonzero(np_array_board) > 52:
+        places_score *= 0.5
+    board = Board(np_array_board)
     max_rating = float("-inf")
     valid_moves, lines = board.get_valid_moves(me)
 
